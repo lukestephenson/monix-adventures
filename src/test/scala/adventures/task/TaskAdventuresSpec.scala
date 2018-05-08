@@ -39,7 +39,7 @@ class TaskAdventuresSpec extends Specification {
     }
 
     "failing Task should fail" in {
-      result(TaskAdventures.alwaysFailingTask()) must throwA[IllegalArgumentException]()
+      result(TaskAdventures.alwaysFailingTask()) must throwA[Exception]()
     }
 
     "get Current Temp In F" in {
@@ -47,7 +47,7 @@ class TaskAdventuresSpec extends Specification {
     }
 
     "get Current Temp In F again" in {
-      def currentTemp() = Task(45)
+      val currentTemp = () => Task(45)
 
       def cToF(c: Int) = Task {
         c * 9/5 + 32
@@ -90,7 +90,7 @@ class TaskAdventuresSpec extends Specification {
 
     "retry on failure" should {
       "not retry on success" in new RetryScope(0) {
-        result(task) must beEqualTo(1)
+        result(task) must beEqualTo(10)
 
         calls must beEqualTo(1)
       }
@@ -102,7 +102,7 @@ class TaskAdventuresSpec extends Specification {
       }
 
       "retry after one failure with delay" in new RetryScope(1) {
-        result(task) must beEqualTo(2)
+        result(task) must beEqualTo(20)
 
         scheduler.tick(1.second)
 
@@ -148,9 +148,9 @@ class TaskAdventuresSpec extends Specification {
     private val taskToRetry = Task.eval {
       calls = calls + 1
       calls
-    }.flatMap{ i =>
-      if (i < failures) Task.raiseError(new IllegalArgumentException(s"failing call $i"))
-      else Task.now(i)
+    }.flatMap { i =>
+      if (i <= failures) Task.raiseError(new IllegalArgumentException(s"failing call $i"))
+      else Task.now(i * 10)
     }
 
     val scheduler = TestScheduler()
