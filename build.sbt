@@ -13,3 +13,14 @@ libraryDependencies ++= Seq(
   "org.specs2"                      %% "specs2-core"                           % specs2Version        % "test",
   "org.specs2"                      %% "specs2-matcher-extra"                  % specs2Version        % "test"
 )
+
+scalacOptions ++= Seq(
+  "-Ypartial-unification",
+  "-Xfatal-warnings",
+  "-Ywarn-unused-import",
+  "-deprecation",
+  "-unchecked",
+  "-feature",
+  "-Xlint",
+  "-language:higherKinds",
+  "-language:postfixOps")
