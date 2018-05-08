@@ -18,14 +18,14 @@ object TaskAdventures {
   /**
     * 2.	Create a Task which when executed logs “hello world” (using `logger`)
     */
-  def helloWorld(): Task[Unit] = {
+  def helloWorld(logger: String => Unit): Task[Unit] = {
     ???
   }
 
   /**
     * 3.	Create a Task which always fails
     */
-  def alwaysFailingTask: Task[Unit] = {
+  def alwaysFailingTask(): Task[Unit] = {
     ???
   }
 
@@ -34,7 +34,7 @@ object TaskAdventures {
     *
     */
   def getCurrentTempInF(currentTemp: () => Task[Int]): Task[Int] = {
-    def cToF(c: Int) = c * 9/5 + 32
+    def cToF(c: Int) = c * 9 / 5 + 32
 
     ???
   }
