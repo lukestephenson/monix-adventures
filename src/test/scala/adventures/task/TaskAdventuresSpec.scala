@@ -39,7 +39,7 @@ class TaskAdventuresSpec extends Specification {
     }
 
     "failing Task should fail" in {
-      result(TaskAdventures.alwaysFailingTask()) must throwA[Exception]()
+      result(TaskAdventures.alwaysFailingTask()) must throwA[IllegalArgumentException]()
     }
 
     "get Current Temp In F" in {
@@ -108,6 +108,32 @@ class TaskAdventuresSpec extends Specification {
 
         calls must beEqualTo(2)
       }
+
+      "return success result of 10th retry" in new RetryScope(10) {
+        task.runAsync(scheduler)
+
+        scheduler.tick(10.seconds)
+
+        calls must beEqualTo(11)
+      }
+
+      "return failure result of 10th retry" in new RetryScope(11) {
+        val futureResult = task.runAsync(scheduler)
+
+        scheduler.tick(10.seconds)
+
+        calls must beEqualTo(11)
+
+        Await.result(futureResult, 1.second) must throwA[IllegalArgumentException]
+      }
+
+      "give up after 10 retries" in new RetryScope(100) {
+        task.runAsync(scheduler)
+
+        scheduler.tick(1.minute)
+
+        calls must beEqualTo(11)
+      }
     }
   }
 
@@ -123,7 +149,7 @@ class TaskAdventuresSpec extends Specification {
       calls = calls + 1
       calls
     }.flatMap{ i =>
-      if (i < failures) Task.raiseError(new RuntimeException(s"failing call $i"))
+      if (i < failures) Task.raiseError(new IllegalArgumentException(s"failing call $i"))
       else Task.now(i)
     }
 
