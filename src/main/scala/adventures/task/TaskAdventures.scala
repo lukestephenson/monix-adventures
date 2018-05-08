@@ -74,8 +74,16 @@ object TaskAdventures {
     * 7.	Write a function which given a Task, will reattempt that task after a specified delay for a maximum number of
     * attempts if the supplied Task fails.
     */
-  def retryOnFailure[T](t: Task[T], maxRetries: Int, delay: FiniteDuration): Task[T] = {
-    ???
+  def retryOnFailure[T](task: Task[T], maxRetries: Int, delay: FiniteDuration): Task[T] = {
+    def retry(remainingAttempts: Int): Task[T] = {
+      task.onErrorHandleWith { error =>
+        if (remainingAttempts > 0)
+          retry(remainingAttempts - 1).delayExecution(delay)
+        else
+          Task.raiseError(error)
+      }
+    }
+    retry(maxRetries)
   }
 
 }
