@@ -4,7 +4,7 @@ import monix.eval.Task
 
 import scala.concurrent.duration.FiniteDuration
 
-class TaskAdventures(logger: String => Unit = println) {
+object TaskAdventures {
 
   /**
     * 1.  Create a task which returns 43
@@ -16,7 +16,7 @@ class TaskAdventures(logger: String => Unit = println) {
   }
 
   /**
-    * 2.	Create a Task which when executed outputs “hello world” (using `logger`)
+    * 2.	Create a Task which when executed logs “hello world” (using `logger`)
     */
   def helloWorld(): Task[Unit] = {
     ???
@@ -52,6 +52,9 @@ class TaskAdventures(logger: String => Unit = println) {
     * 6. Computing the complexity of a string is a very expensive op.  Implement this function so that complexity
     * of the calculation will be done in parallel.  Sum the returned results to
     * provide the overall complexity for all Strings.  (try using operations from monix)
+    *
+    * Also, check out the spec for this to see how the Monix TestScheduler can be used to simulate the passage of time
+    * in tests.
     */
   def calculateStringComplexityInParallel(strings: List[String], complexity: String => Task[Int]): Task[Int] = {
     ???
