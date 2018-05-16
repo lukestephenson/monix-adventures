@@ -62,7 +62,10 @@ object TaskAdventures {
 
   /**
     * 6.b. As above, but try to implement the parallel processing using the monix Applicative instance for Task
-    * and the cats `sequence` function. (if you haven't heard of cats / sequence skip this)
+    * and the cats `sequence` function. (if you haven't heard of cats / sequence skip this).
+    *
+    * Note that you will need to `import monix.eval.Task.nondeterminism` (also note that intellij will probably tell you
+    * the import is not being used)
     */
   def calculateStringComplexityInParallelAgain(strings: List[String], complexity: String => Task[Int]): Task[Int] = {
     ???
