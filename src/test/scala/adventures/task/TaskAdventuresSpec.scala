@@ -1,6 +1,7 @@
 package adventures.task
 
 import monix.eval.Task
+import monix.execution.Scheduler
 import monix.execution.schedulers.TestScheduler
 import org.specs2.matcher.Scope
 import org.specs2.mutable.Specification
@@ -57,35 +58,33 @@ class TaskAdventuresSpec extends Specification {
     }
 
     "calculate string complexity in parallel" in {
-      val source = List("a", "b", "c")
+      val source = List("a", "b", "c", "e", "f", "g")
 
       def complexity(string: String) = Task(string.length).delayExecution(1.second)
 
       val task: Task[Int] = TaskAdventures.calculateStringComplexityInParallel(source, complexity)
 
-      val scheduler = TestScheduler()
+      val scheduler = Scheduler.fixedPool(name = "test1", poolSize = 10)
 
       val result = task.runAsync(scheduler)
 
-      scheduler.tick(1.second)
-
-      Await.result(result, 2.seconds) must beEqualTo(3)
+      // if not run in parallel this will timeout.
+      Await.result(result, 2.seconds) must beEqualTo(6)
     }
 
     "calculate string complexity in parallel again" in {
-      val source = List("a", "b", "c")
+      val source = List("a", "b", "c", "e", "f", "g")
 
       def complexity(string: String) = Task(string.length).delayExecution(1.second)
 
       val task: Task[Int] = TaskAdventures.calculateStringComplexityInParallelAgain(source, complexity)
 
-      val scheduler = TestScheduler()
+      val scheduler = Scheduler.fixedPool(name = "test2", poolSize = 10)
 
       val result = task.runAsync(scheduler)
 
-      scheduler.tick(1.second)
-
-      Await.result(result, 2.seconds) must beEqualTo(3)
+      // if not run in parallel this will timeout.
+      Await.result(result, 2.seconds) must beEqualTo(6)
     }
 
     "retry on failure" should {
