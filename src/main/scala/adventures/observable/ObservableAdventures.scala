@@ -19,7 +19,7 @@ object ObservableAdventures {
   /**
     * Create an Observable which emits each element of the source list
     */
-  def simpleObservable(records: List[SourceRecord]): Observable[SourceRecord] = ???
+  def listToObservable(records: List[SourceRecord]): Observable[SourceRecord] = ???
 
   /**
     * Create an Observable from which all records can be read.
@@ -34,13 +34,14 @@ object ObservableAdventures {
   /**
     * Transform all of the SourceRecords to TargetRecords.  If the price cannot be converted to a double,
     * then drop the Source element.
+    *
     * @param sourceRecords
     * @return
     */
   def transform(sourceRecords: Observable[SourceRecord]): Observable[TargetRecord] = ???
 
   /**
-    * Elastic search supports saving batches of 50 records.  This is a remote async call so the result is represented
+    * Elastic search supports saving batches of 5 records.  This is a remote async call so the result is represented
     * by `Task`
     *
     * Returns the number of records which were saved to elastic search

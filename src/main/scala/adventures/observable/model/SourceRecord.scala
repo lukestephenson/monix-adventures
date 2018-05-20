@@ -1,3 +1,3 @@
 package adventures.observable.model
 
-class SourceRecord(id: String, price: String)
+case class SourceRecord(id: String, price: String)

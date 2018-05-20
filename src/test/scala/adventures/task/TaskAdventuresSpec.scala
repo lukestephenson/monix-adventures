@@ -12,7 +12,7 @@ import scala.concurrent.duration._
 
 class TaskAdventuresSpec extends Specification {
 
-  "TaskAdventuresSpec" should {
+  "TaskAdventures" should {
     "immediately executing Task should return 43" in {
       result(TaskAdventures.immediatelyExecutingTask()) must beEqualTo(43)
     }
