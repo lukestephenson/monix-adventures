@@ -5,6 +5,10 @@ import monix.eval.Task
 
 import scala.concurrent.duration.FiniteDuration
 
+/**
+  * If a result 'A' is available synchronously, then that same result asynchronously
+  * could be represented as a 'Task[A]'
+  */
 object TaskAdventures {
 
   /**
@@ -35,7 +39,7 @@ object TaskAdventures {
     *
     */
   def getCurrentTempInF(currentTemp: () => Task[Int]): Task[Int] = {
-    def cToF(c: Int) = c * 9 / 5 + 32
+//    def cToF(c: Int) = c * 9 / 5 + 32
 
     currentTemp().map(cToF)
   }
@@ -65,7 +69,12 @@ object TaskAdventures {
 
   /**
     * 6.b. As above, but try to implement the parallel processing using the monix Applicative instance for Task
-    * and the cats `sequence` function. (if you haven't heard of cats / sequence skip this)
+    * and the cats `sequence` function. (if you haven't heard of cats / sequence skip this).
+    *
+    * The following imports will help.
+    * import monix.eval.Task.nondeterminism // look at the documentation / implementation for this
+    * import monix.cats._
+    * import cats.implicits._
     */
   def calculateStringComplexityInParallelAgain(strings: List[String], complexity: String => Task[Int]): Task[Int] = {
     import monix.eval.Task.nondeterminism
