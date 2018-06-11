@@ -4,6 +4,8 @@ import adventures.observable.model.{PageId, PaginatedResult, SourceRecord, Targe
 import monix.eval.Task
 import monix.reactive.Observable
 
+import scala.concurrent.Future
+
 /**
   * If elements from a list can be operated on synchronously as a List[A], then the equivalent data structure where
   * those elements can be operated asynchronously could be represented as a Observable[A].
@@ -15,6 +17,21 @@ import monix.reactive.Observable
   * 3. Insert that data into elasticsearch (which has an efficient API to insert in batches of 50)
   */
 object ObservableAdventures {
+
+  /**
+    * For this exercise, think about how you would implement the following without Monix.
+    *
+    * Given an Iterable or record ids, how would you go about loading each of those records asynchronously?
+    *
+    * This exercise doesn't have to be implemented, but just think about what this would look like.  Would you model the
+    * return type as:
+    * - Iterable[TargetRecord] (what does this imply must happen?)
+    * - Iterable[Future[TargetRecord]] (what is then responsible for handling the asynchronous nature?)
+    *
+    * What would you do if you needed back pressure (i.e. if something else consuming from the iterable slowed down, how
+    * would this propagate?)
+    */
+  def iterablesAndConcurrency(records: Iterable[Int], load: Int => Future[SourceRecord]): Iterable[TargetRecord] = ???
 
   /**
     * Create an Observable which emits each element of the source list
@@ -51,7 +68,7 @@ object ObservableAdventures {
   /**
     * Consume the Observable
     *
-    * The final result should be the number of records which were saved to ElasticSearch
+    * The final result should be the number of records which were saved to ElasticSearch.
     */
   def execute(loadedObservable: Observable[Int]): Task[Int] = ???
 }
