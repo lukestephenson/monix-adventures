@@ -19,23 +19,6 @@ class ObservableAdventuresSpec extends Specification {
       runLog(obs) must beEqualTo(source)
     }
 
-    "handle a paginated feed" in {
-      val pages = Map(
-        PageId.FirstPage -> PaginatedResult(List(SourceRecord("1", "1.1")), Some(PageId("2"))),
-        PageId("2") -> PaginatedResult(List(SourceRecord("2", "2.2")), Some(PageId("3"))),
-        PageId("3") -> PaginatedResult(List(SourceRecord("3", "3.3")), None)
-      )
-
-      def readPage(pageId: PageId): Task[PaginatedResult] = {
-        Task(pages(pageId))
-      }
-
-      val obs = ObservableAdventures.readFromLegacyDatasource(readPage)
-
-      val expected = List(SourceRecord("1", "1.1"), SourceRecord("2", "2.2"), SourceRecord("3", "3.3"))
-      runLog(obs) must beEqualTo(expected)
-    }
-
     "transform data and filter out invalid data" in {
       val source = Observable(SourceRecord("1", "1.1"), SourceRecord("2", "invalid"), SourceRecord("3", "3.3"))
 
@@ -60,10 +43,48 @@ class ObservableAdventuresSpec extends Specification {
       loads.toList must beEqualTo(expected)
     }
 
+    "load in batches and retry on failure" in {
+      val loads = ListBuffer[List[TargetRecord]]()
+
+      var i = 0
+
+      def esLoad(batch: Seq[TargetRecord]): Task[Unit] = {
+        val result = {
+          if (i % 2 == 0) Task.raiseError(new RuntimeException("ES write failed"))
+          else Task(loads.append(batch.toList))
+        }
+        Task { i = i + 1 }.flatMap(_ => result)
+      }
+
+      val source = (1 to 12).map(i => TargetRecord(i.toString, i)).toList
+      val obs = ObservableAdventures.load(Observable.fromIterable(source), esLoad)
+      val expected = source.grouped(5).toList
+
+      runLog(obs) must beEqualTo(List(5, 5, 2))
+      loads.toList must beEqualTo(expected)
+    }
+
     "Consume an observable" in {
       val task = ObservableAdventures.execute(Observable(5, 5, 2))
 
       Await.result(task.runAsync, 10.seconds) must beEqualTo(12)
+    }
+
+    "handle a paginated feed" in {
+      val pages = Map(
+        PageId.FirstPage -> PaginatedResult(List(SourceRecord("1", "1.1")), Some(PageId("2"))),
+        PageId("2") -> PaginatedResult(List(SourceRecord("2", "2.2")), Some(PageId("3"))),
+        PageId("3") -> PaginatedResult(List(SourceRecord("3", "3.3")), None)
+      )
+
+      def readPage(pageId: PageId): Task[PaginatedResult] = {
+        Task(pages(pageId))
+      }
+
+      val obs = ObservableAdventures.readFromPaginatedDatasource(readPage)
+
+      val expected = List(SourceRecord("1", "1.1"), SourceRecord("2", "2.2"), SourceRecord("3", "3.3"))
+      runLog(obs) must beEqualTo(expected)
     }
   }
 

@@ -39,7 +39,7 @@ object TaskAdventures {
     *
     */
   def getCurrentTempInF(currentTemp: () => Task[Int]): Task[Int] = {
-//    def cToF(c: Int) = c * 9 / 5 + 32
+    def cToF(c: Int) = c * 9 / 5 + 32
 
     currentTemp().map(cToF)
   }

@@ -19,36 +19,20 @@ import scala.util.{Failure, Success, Try}
 object ObservableAdventures {
 
   /**
-    * Create an Observable which emits each element of the source list
+    * For this exercise, think about how you would implement the following without Monix.
+    *
+    * Given an Iterable or record ids, how would you go about loading each of those records asynchronously?
+    *
+    * This exercise doesn't have to be implemented, but just think about what this would look like.  Would you model the
+    * return type as:
+    * - Iterable[TargetRecord] (what does this imply must happen?)
+    * - Iterable[Future[TargetRecord]] (what is then responsible for handling the asynchronous nature?)
+    *
+    * What would you do if you needed back pressure (i.e. if something else consuming from the iterable slowed down, how
+    * would this propagate?)
     */
   def listToObservable(records: List[SourceRecord]): Observable[SourceRecord] = {
     Observable.fromIterable(records)
-  }
-
-  /**
-    * Create an Observable from which all records can be read.
-    *
-    * The first page of data can be obtained using `PageId.FirstPage`, after which you should follow the nextPage
-    * references in the PaginatedResult.
-    *
-    * Look at Observable.tailRecM
-    */
-  def readFromLegacyDatasource(readPage: PageId => Task[PaginatedResult]): Observable[SourceRecord] = {
-    def scanPages(pageId: PageId): Observable[Either[PageId, SourceRecord]] = {
-      Observable.fromTask(readPage(pageId)).flatMap { paginatedResult =>
-        Observable.fromIterable(paginatedResult.results).map(Right(_)) ++
-          continue(paginatedResult.nextPage)
-      }
-    }
-
-    def continue(maybeNextPage: Option[PageId]): Observable[Either[PageId, SourceRecord]] = {
-      maybeNextPage match {
-        case Some(pageId) => Observable(Left(pageId))
-        case None => Observable.empty
-      }
-    }
-
-    Observable.tailRecM(PageId.FirstPage)(scanPages)
   }
 
   /**
@@ -80,11 +64,50 @@ object ObservableAdventures {
   }
 
   /**
+    * Elastic search supports saving batches of 5 records.  This is a remote async call so the result is represented
+    * by `Task`.  Note that the elasticSearchLoad may fail (in practice this is pretty rare).  Rather than the Observable terminating with an error,
+    * try using the Task retry logic you created earlier.
+    *
+    * Returns the number of records which were saved to elastic search.
+    */
+  def loadWithRetry(targetRecords: Observable[TargetRecord], elasticSearchLoad: Seq[TargetRecord] => Task[Unit]): Observable[Int] = {
+    load(targetRecords, elasticSearchLoad)
+  }
+
+  /**
     * Consume the Observable
     *
-    * The final result should be the number of records which were saved to ElasticSearch
+    * The final result should be the number of records which were saved to ElasticSearch.
     */
   def execute(loadedObservable: Observable[Int]): Task[Int] = {
     loadedObservable.sumL
   }
+
+  /**
+    * Create an Observable from which all records can be read.  Earlier we created "listToObservable", but what if the
+    * source data comes from a paginated datasource.
+    *
+    * The first page of data can be obtained using `PageId.FirstPage`, after which you should follow the nextPage
+    * references in the PaginatedResult.
+    *
+    * Look at Observable.tailRecM
+    */
+  def readFromPaginatedDatasource(readPage: PageId => Task[PaginatedResult]): Observable[SourceRecord] = {
+    def scanPages(pageId: PageId): Observable[Either[PageId, SourceRecord]] = {
+      Observable.fromTask(readPage(pageId)).flatMap { paginatedResult =>
+        Observable.fromIterable(paginatedResult.results).map(Right(_)) ++
+          continue(paginatedResult.nextPage)
+      }
+    }
+
+    def continue(maybeNextPage: Option[PageId]): Observable[Either[PageId, SourceRecord]] = {
+      maybeNextPage match {
+        case Some(pageId) => Observable(Left(pageId))
+        case None => Observable.empty
+      }
+    }
+
+    Observable.tailRecM(PageId.FirstPage)(scanPages)
+  }
+
 }
