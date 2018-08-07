@@ -49,15 +49,18 @@ class ObservableAdventuresSpec extends Specification {
       var i = 0
 
       def esLoad(batch: Seq[TargetRecord]): Task[Unit] = {
-        val result = {
-          if (i % 2 == 0) Task.raiseError(new RuntimeException("ES write failed"))
-          else Task(loads.append(batch.toList))
+        Task {
+          i = i + 1
+          i
+        }.flatMap { loadCount =>
+          if (loadCount % 2 == 0) {
+            Task.raiseError(new RuntimeException("ES write failed"))
+          } else Task(loads.append(batch.toList))
         }
-        Task { i = i + 1 }.flatMap(_ => result)
       }
 
       val source = (1 to 12).map(i => TargetRecord(i.toString, i)).toList
-      val obs = ObservableAdventures.load(Observable.fromIterable(source), esLoad)
+      val obs = ObservableAdventures.loadWithRetry(Observable.fromIterable(source), esLoad)
       val expected = source.grouped(5).toList
 
       runLog(obs) must beEqualTo(List(5, 5, 2))
