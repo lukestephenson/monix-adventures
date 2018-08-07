@@ -49,15 +49,18 @@ class ObservableAdventuresSpec extends Specification {
       var i = 0
 
       def esLoad(batch: Seq[TargetRecord]): Task[Unit] = {
-        val result = {
-          if (i % 2 == 0) Task.raiseError(new RuntimeException("ES write failed"))
-          else Task(loads.append(batch.toList))
+        Task {
+          i = i + 1
+          i
+        }.flatMap { loadCount =>
+          if (loadCount % 2 == 0) {
+            Task.raiseError(new RuntimeException("ES write failed"))
+          } else Task(loads.append(batch.toList))
         }
-        Task { i = i + 1 }.flatMap(_ => result)
       }
 
       val source = (1 to 12).map(i => TargetRecord(i.toString, i)).toList
-      val obs = ObservableAdventures.load(Observable.fromIterable(source), esLoad)
+      val obs = ObservableAdventures.loadWithRetry(Observable.fromIterable(source), esLoad)
       val expected = source.grouped(5).toList
 
       runLog(obs) must beEqualTo(List(5, 5, 2))
@@ -85,6 +88,36 @@ class ObservableAdventuresSpec extends Specification {
 
       val expected = List(SourceRecord("1", "1.1"), SourceRecord("2", "2.2"), SourceRecord("3", "3.3"))
       runLog(obs) must beEqualTo(expected)
+    }
+
+    "run the reads and writes in parallel" in {
+      val pages = (0 to 19).map { page =>
+        val pageRecords = (0 to 4).map { record =>
+          SourceRecord(s"${page}-${record}", "111")
+        }.toList
+        val nextPage = if (page >= 19) None else Some(PageId((page + 1).toString))
+        PageId(page.toString) -> PaginatedResult(pageRecords, nextPage)
+      }.toMap
+
+      def readPage(pageId: PageId): Task[PaginatedResult] = {
+        Task(pages(pageId)).delayExecution(1.second)
+      }
+
+      def esLoad(batch: Seq[TargetRecord]): Task[Unit] = {
+        Task(()).delayExecution(500.milliseconds)
+      }
+
+      val job = ObservableAdventures.readTransformAndLoadAndExecute(readPage, esLoad)
+
+      val start = System.currentTimeMillis()
+      val recordsProcessed = Await.result(job.runAsync, 1.minute)
+      val duration = System.currentTimeMillis() - start
+
+      println(s"Processing took ${duration}ms")
+
+      duration must beLessThan(22.seconds.toMillis) // 1 second buffer for timing issues
+
+      recordsProcessed must beEqualTo(100)
     }
   }
 

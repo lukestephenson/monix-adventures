@@ -112,4 +112,17 @@ object ObservableAdventures {
     Observable.tailRecM(PageId.FirstPage)(scanPages)
   }
 
+  /**
+    * Lets say reading a page takes 1 second and loading a batch of records takes 1 second.  If there are 20 pages (each
+    * of one load batch in size), how long will it take to execute?  Look for "Processing took XXms" in the logs.  Try
+    * to reduce the overall time by doing the reads and writes in parallel.  Below is provided a sequential implementation
+    * (assuming you have implemented the methods above).
+    */
+  def readTransformAndLoadAndExecute(readPage: PageId => Task[PaginatedResult], elasticSearchLoad: Seq[TargetRecord] => Task[Unit]): Task[Int] = {
+    // Note it wouldn't look like this in the prod code, but more a factor of combining our building blocks above.
+    val readObservable = readFromPaginatedDatasource(readPage)
+    val transformedObservable = transform(readObservable)
+    execute(load(transformedObservable, elasticSearchLoad))
+  }
+
 }
