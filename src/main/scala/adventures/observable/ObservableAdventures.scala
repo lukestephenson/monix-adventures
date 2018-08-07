@@ -39,16 +39,6 @@ object ObservableAdventures {
   def listToObservable(records: List[SourceRecord]): Observable[SourceRecord] = ???
 
   /**
-    * Create an Observable from which all records can be read.
-    *
-    * The first page of data can be obtained using `PageId.FirstPage`, after which you should follow the nextPage
-    * references in the PaginatedResult.
-    *
-    * Look at Observable.tailRecM
-    */
-  def readFromLegacyDatasource(readPage: PageId => Task[PaginatedResult]): Observable[SourceRecord] = ???
-
-  /**
     * Transform all of the SourceRecords to TargetRecords.  If the price cannot be converted to a double,
     * then drop the Source element.
     *
@@ -66,9 +56,32 @@ object ObservableAdventures {
   def load(targetRecords: Observable[TargetRecord], elasticSearchLoad: Seq[TargetRecord] => Task[Unit]): Observable[Int] = ???
 
   /**
+    * Elastic search supports saving batches of 5 records.  This is a remote async call so the result is represented
+    * by `Task`.  Note that the elasticSearchLoad may fail (in practice this is pretty rare).  Rather than the Observable terminating with an error,
+    * try using the Task retry logic you created earlier.
+    *
+    * Returns the number of records which were saved to elastic search.
+    */
+  def loadWithRetry(targetRecords: Observable[TargetRecord], elasticSearchLoad: Seq[TargetRecord] => Task[Unit]): Observable[Int] = {
+    load(targetRecords, elasticSearchLoad)
+  }
+
+  /**
     * Consume the Observable
     *
     * The final result should be the number of records which were saved to ElasticSearch.
     */
   def execute(loadedObservable: Observable[Int]): Task[Int] = ???
+
+  /**
+    * Create an Observable from which all records can be read.  Earlier we created "listToObservable", but what if the
+    * source data comes from a paginated datasource.
+    *
+    * The first page of data can be obtained using `PageId.FirstPage`, after which you should follow the nextPage
+    * references in the PaginatedResult.
+    *
+    * Look at Observable.tailRecM
+    */
+  def readFromPaginatedDatasource(readPage: PageId => Task[PaginatedResult]): Observable[SourceRecord] = ???
+
 }
