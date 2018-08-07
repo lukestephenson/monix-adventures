@@ -89,6 +89,36 @@ class ObservableAdventuresSpec extends Specification {
       val expected = List(SourceRecord("1", "1.1"), SourceRecord("2", "2.2"), SourceRecord("3", "3.3"))
       runLog(obs) must beEqualTo(expected)
     }
+
+    "run the reads and writes in parallel" in {
+      val pages = (0 to 19).map { page =>
+        val pageRecords = (0 to 4).map { record =>
+          SourceRecord(s"${page}-${record}", "111")
+        }.toList
+        val nextPage = if (page >= 19) None else Some(PageId((page + 1).toString))
+        PageId(page.toString) -> PaginatedResult(pageRecords, nextPage)
+      }.toMap
+
+      def readPage(pageId: PageId): Task[PaginatedResult] = {
+        Task(pages(pageId)).delayExecution(1.second)
+      }
+
+      def esLoad(batch: Seq[TargetRecord]): Task[Unit] = {
+        Task(()).delayExecution(500.milliseconds)
+      }
+
+      val job = ObservableAdventures.readTransformAndLoadAndExecute(readPage, esLoad)
+
+      val start = System.currentTimeMillis()
+      val recordsProcessed = Await.result(job.runAsync, 1.minute)
+      val duration = System.currentTimeMillis() - start
+
+      println(s"Processing took ${duration}ms")
+
+      duration must beLessThan(22.seconds.toMillis) // 1 second buffer for timing issues
+
+      recordsProcessed must beEqualTo(100)
+    }
   }
 
   def runLog[T](observable: Observable[T], timeout: FiniteDuration = 10.seconds): List[T] =
