@@ -1,10 +1,12 @@
 package adventures.observable
 
 import adventures.observable.model.{PageId, PaginatedResult, SourceRecord, TargetRecord}
+import adventures.task.TaskAdventures
 import monix.eval.Task
 import monix.reactive.Observable
 
 import scala.util.{Failure, Success, Try}
+import scala.concurrent.duration._
 
 /**
   * If elements from a list can be operated on synchronously as a List[A], then the equivalent data structure where
@@ -71,7 +73,7 @@ object ObservableAdventures {
     * Returns the number of records which were saved to elastic search.
     */
   def loadWithRetry(targetRecords: Observable[TargetRecord], elasticSearchLoad: Seq[TargetRecord] => Task[Unit]): Observable[Int] = {
-    load(targetRecords, elasticSearchLoad)
+    load(targetRecords, records => TaskAdventures.retryOnFailure(elasticSearchLoad(records), 5, 100.milliseconds))
   }
 
   /**
