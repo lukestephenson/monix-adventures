@@ -3,7 +3,7 @@ package adventures.observable
 import adventures.observable.model.{PageId, PaginatedResult, SourceRecord, TargetRecord}
 import adventures.task.TaskAdventures
 import monix.eval.Task
-import monix.reactive.Observable
+import monix.reactive.{Observable, OverflowStrategy}
 
 import scala.util.{Failure, Success, Try}
 import scala.concurrent.duration._
@@ -120,7 +120,7 @@ object ObservableAdventures {
     */
   def readTransformAndLoadAndExecute(readPage: PageId => Task[PaginatedResult], elasticSearchLoad: Seq[TargetRecord] => Task[Unit]): Task[Int] = {
     // Note it wouldn't look like this in the prod code, but more a factor of combining our building blocks above.
-    val readObservable = readFromPaginatedDatasource(readPage)
+    val readObservable = readFromPaginatedDatasource(readPage).asyncBoundary(OverflowStrategy.BackPressure(10))
     val transformedObservable = transform(readObservable)
     execute(load(transformedObservable, elasticSearchLoad))
   }
