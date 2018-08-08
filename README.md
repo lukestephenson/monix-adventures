@@ -18,7 +18,7 @@ There are a series of tests that you need to make pass in TaskAventuresSpec.
 Run them with `sbt "testOnly *.TaskAventuresSpec"`.  Tests can also be run in the IDE.
 
 
-## Adventure 2: Aysnchrony with Monix Task
+## Adventure 2: Aysnchrony with Monix Observable
 The aim is:
 
 1. Gain practice/confidence in working with Monix Observable.
