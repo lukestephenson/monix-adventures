@@ -12,10 +12,10 @@ The aim is:
 
 1. Gain practice/confidence in working with Monix Task.
 
-Complete the exercises in: adventures.task.TaskAventures
+Complete the exercises in: adventures.task.TaskAdventures
 
-There are a series of tests that you need to make pass in TaskAventuresSpec.
-Run them with `sbt "testOnly *.TaskAventuresSpec"`.  Tests can also be run in the IDE.
+There are a series of tests that you need to make pass in TaskAdventuresSpec.
+Run them with `sbt "testOnly *.TaskAdventuresSpec"`.  Tests can also be run in the IDE.
 
 
 ## Adventure 2: Aysnchrony with Monix Observable
