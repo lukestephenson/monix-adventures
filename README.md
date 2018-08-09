@@ -28,5 +28,9 @@ asynchronous actions.
 
 Complete the exercises in: adventures.task.ObservableAdventures
 
+The docs for Observable are online https://monix.io/docs/3x/reactive/observable.html.  Note they are very thin and
+don't cover the majority of functions on Observable.  For those you are best exploring Observable in your IDE or
+browsing https://monix.io/api/3.0/monix/reactive/Observable.html.
+
 There are a series of tests that you need to make pass in ObservableAdventuresSpec.
 Run them with `sbt "testOnly *.ObservableAdventuresSpec"`.  Tests can also be run in the IDE.

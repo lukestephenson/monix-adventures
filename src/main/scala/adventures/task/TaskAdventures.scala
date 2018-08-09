@@ -27,7 +27,9 @@ object TaskAdventures {
   }
 
   /**
-    * 3.	Create a Task which always fails
+    * 3.	Create a Task which always fails.
+    *
+    * See https://monix.io/docs/2x/eval/task.html#taskraiseerror
     */
   def alwaysFailingTask(): Task[Unit] = {
     ???
