@@ -97,15 +97,17 @@ class ObservableAdventuresSpec extends Specification {
         val nextPage = if (n >= lastPage) None else Some(PageId((n + 1).toString))
 
         PageId(n.toString) -> PaginatedResult(pageRecords, nextPage)
-      }.toMap
+      }.toList
+        
+      val pagesMap = pages.toMap
 
       def readPage(pageId: PageId): Task[PaginatedResult] = {
-        Task(pages(pageId))
+        Task(pagesMap(pageId))
       }
 
       val obs = ObservableAdventures.readFromPaginatedDatasource(readPage)
 
-      val expected = pages.values.toList.flatMap(_.results)
+      val expected = pages.flatMap(_._2.results)
 
       runLog(obs) must beEqualTo(expected)
     }
