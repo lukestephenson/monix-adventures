@@ -1,5 +1,5 @@
 ---
-title: Types for Quality
+title: Monix Adventures
 revealOptions:
     transition: 'fade'
     transitionSpeed: 'fast'
@@ -97,3 +97,7 @@ Asynchrony is a first class citizen
 ---
 
 ### Start coding
+
+https://github.com/lukestephenson/monix-adventures
+
+Ask for help
