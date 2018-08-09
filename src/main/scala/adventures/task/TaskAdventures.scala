@@ -28,7 +28,9 @@ object TaskAdventures {
   }
 
   /**
-    * 3.	Create a Task which always fails
+    * 3.	Create a Task which always fails.
+    *
+    * See https://monix.io/docs/2x/eval/task.html#taskraiseerror
     */
   def alwaysFailingTask(): Task[Unit] = {
     Task.raiseError(new Exception("Die"))
@@ -71,10 +73,13 @@ object TaskAdventures {
     * 6.b. As above, but try to implement the parallel processing using the monix Applicative instance for Task
     * and the cats `sequence` function. (if you haven't heard of cats / sequence skip this).
     *
+    *
     * The following imports will help.
-    * import monix.eval.Task.nondeterminism // look at the documentation / implementation for this
-    * import monix.cats._
     * import cats.implicits._
+    * implicit def parTaskApplicative: Applicative[eval.Task.Par] = Task.catsParallel.applicative
+    *
+    * Note that you will also need to convert from Task to Task.Par for the cats sequence operator to execute the tasks
+    * in parallel.
     */
   def calculateStringComplexityInParallelAgain(strings: List[String], complexity: String => Task[Int]): Task[Int] = {
     import monix.eval.Task.nondeterminism
