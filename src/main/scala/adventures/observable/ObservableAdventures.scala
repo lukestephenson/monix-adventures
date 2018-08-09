@@ -53,10 +53,11 @@ object ObservableAdventures {
   def transform(sourceRecords: Observable[SourceRecord]): Observable[TargetRecord] = ???
 
   /**
-    * Elastic search supports saving batches of 5 records.  This is a remote async call so the result is represented
-    * by `Task`
+    * Elastic search supports saving batches of 5 records. This is a remote async call so the result is represented
+    * by `Task`.
     *
-    * Returns the number of records which were saved to elastic search
+    * Implement the following method so it calls elasticSearchLoad with batches of 5 records and returns the number
+    * of loaded items.
     */
   def load(targetRecords: Observable[TargetRecord], elasticSearchLoad: Seq[TargetRecord] => Task[Unit]): Observable[Int] = ???
 
@@ -79,10 +80,14 @@ object ObservableAdventures {
   def execute(loadedObservable: Observable[Int]): Task[Int] = ???
 
   /**
-    * Create an Observable from which all records can be read.  Earlier we created "listToObservable", but what if the
-    * source data comes from a paginated datasource.
+    * Create an Observable from which all records can be read.
     *
-    * The first page of data can be obtained using `PageId.FirstPage`, after which you should follow the nextPage
+    * Earlier we created "listToObservable", but what if the source data comes from a paginated datasource.
+    * In the following method `readPage` returns a PaginatedResult object that contains list of record and a
+    * reference to the next page. You are required the read the records from ALL the pages and return them in a
+    * single Observable.
+    *
+    * The first page of data can be obtained using PageId.FirstPage`, after which you should follow the nextPage
     * references in the PaginatedResult.
     *
     * Look at Observable.tailRecM
