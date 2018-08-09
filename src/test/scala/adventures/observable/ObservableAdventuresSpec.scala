@@ -90,6 +90,26 @@ class ObservableAdventuresSpec extends Specification {
       runLog(obs) must beEqualTo(expected)
     }
 
+    "not blow the stack when handling a large paginated feed" in {
+      val lastPage = 1000
+      val pages = (0 to lastPage).map { n =>
+        val pageRecords = List(SourceRecord(n.toString, s"$n.$n"))
+        val nextPage = if (n >= lastPage) None else Some(PageId((n + 1).toString))
+
+        PageId(n.toString) -> PaginatedResult(pageRecords, nextPage)
+      }.toMap
+
+      def readPage(pageId: PageId): Task[PaginatedResult] = {
+        Task(pages(pageId))
+      }
+
+      val obs = ObservableAdventures.readFromPaginatedDatasource(readPage)
+
+      val expected = pages.values.toList.flatMap(_.results)
+
+      runLog(obs) must beEqualTo(expected)
+    }
+
     "run the reads and writes in parallel" in {
       val pages = (0 to 19).map { page =>
         val pageRecords = (0 to 4).map { record =>
