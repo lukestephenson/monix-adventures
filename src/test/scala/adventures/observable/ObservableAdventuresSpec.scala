@@ -73,43 +73,69 @@ class ObservableAdventuresSpec extends Specification {
       Await.result(task.runAsync, 10.seconds) must beEqualTo(12)
     }
 
-    "handle a paginated feed" in {
-      val pages = Map(
-        PageId.FirstPage -> PaginatedResult(List(SourceRecord("1", "1.1")), Some(PageId("2"))),
-        PageId("2") -> PaginatedResult(List(SourceRecord("2", "2.2")), Some(PageId("3"))),
-        PageId("3") -> PaginatedResult(List(SourceRecord("3", "3.3")), None)
-      )
+    "handing a paginated feed" should {
+      "handle a small set of data" in {
+        val pages = Map(
+          PageId.FirstPage -> PaginatedResult(List(SourceRecord("1", "1.1")), Some(PageId("2"))),
+          PageId("2") -> PaginatedResult(List(SourceRecord("2", "2.2")), Some(PageId("3"))),
+          PageId("3") -> PaginatedResult(List(SourceRecord("3", "3.3")), None)
+        )
 
-      def readPage(pageId: PageId): Task[PaginatedResult] = {
-        Task(pages(pageId))
+        def readPage(pageId: PageId): Task[PaginatedResult] = {
+          Task(pages(pageId))
+        }
+
+        val obs = ObservableAdventures.readFromPaginatedDatasource(readPage)
+
+        val expected = List(SourceRecord("1", "1.1"), SourceRecord("2", "2.2"), SourceRecord("3", "3.3"))
+        runLog(obs) must beEqualTo(expected)
       }
 
-      val obs = ObservableAdventures.readFromPaginatedDatasource(readPage)
+      // Monix 2.3 Observable had some stack safety issues
+      "not blow the stack when handling a large paginated feed" in {
+        val lastPage = 1000
+        val pages = (0 to lastPage).map { n =>
+          val pageRecords = List(SourceRecord(n.toString, s"$n.$n"))
+          val nextPage = if (n >= lastPage) None else Some(PageId((n + 1).toString))
 
-      val expected = List(SourceRecord("1", "1.1"), SourceRecord("2", "2.2"), SourceRecord("3", "3.3"))
-      runLog(obs) must beEqualTo(expected)
-    }
+          PageId(n.toString) -> PaginatedResult(pageRecords, nextPage)
+        }.toList
 
-    "not blow the stack when handling a large paginated feed" in {
-      val lastPage = 1000
-      val pages = (0 to lastPage).map { n =>
-        val pageRecords = List(SourceRecord(n.toString, s"$n.$n"))
-        val nextPage = if (n >= lastPage) None else Some(PageId((n + 1).toString))
+        val pagesMap = pages.toMap
 
-        PageId(n.toString) -> PaginatedResult(pageRecords, nextPage)
-      }.toList
-        
-      val pagesMap = pages.toMap
+        def readPage(pageId: PageId): Task[PaginatedResult] = {
+          Task(pagesMap(pageId))
+        }
 
-      def readPage(pageId: PageId): Task[PaginatedResult] = {
-        Task(pagesMap(pageId))
+        val obs = ObservableAdventures.readFromPaginatedDatasource(readPage)
+
+        val expected = pages.flatMap(_._2.results)
+
+        runLog(obs) must beEqualTo(expected)
       }
 
-      val obs = ObservableAdventures.readFromPaginatedDatasource(readPage)
+      // Verifies the implementation doesn't go the whole way to the end of all pages before emitting data.
+      "should emit data as it is read" in {
+        val pages = Map(
+          PageId.FirstPage -> PaginatedResult(List(SourceRecord("1", "1.1")), Some(PageId("2"))),
+          PageId("2") -> PaginatedResult(List(SourceRecord("2", "2.2")), Some(PageId("3"))),
+          PageId("3") -> PaginatedResult(List(SourceRecord("3", "3.3")), None)
+        )
 
-      val expected = pages.flatMap(_._2.results)
+        def readPage(pageId: PageId): Task[PaginatedResult] = {
+          Task(pages(pageId)).delayResult(1.second)
+        }
 
-      runLog(obs) must beEqualTo(expected)
+        val obs = ObservableAdventures.readFromPaginatedDatasource(readPage)
+
+        var dataEmitted: SourceRecord = null
+
+        obs.consumeWith(Consumer.foreach(emitted => dataEmitted = emitted)).runAsync
+
+        Thread.sleep(1500)
+
+        dataEmitted must not(beNull)
+      }
     }
 
     "run the reads and writes in parallel" in {
