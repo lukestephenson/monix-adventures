@@ -90,7 +90,9 @@ object ObservableAdventures {
     * The first page of data can be obtained using PageId.FirstPage`, after which you should follow the nextPage
     * references in the PaginatedResult.
     *
-    * Look at Observable.tailRecM
+    * Look at
+    * Observable.++ AND
+    * Observable.tailRecM OR Observable.flatMap
     */
   def readFromPaginatedDatasource(readPage: PageId => Task[PaginatedResult]): Observable[SourceRecord] = ???
 
