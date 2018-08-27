@@ -25,8 +25,8 @@ https://github.com/lukestephenson/monix-adventures
 https://github.com/lukestephenson/monix-adventures
 
 - Star the project!
-- Install sbt `brew install sbt`
-- Download the internet `sbt test`
+- Install sbt - `brew install sbt`
+- Download the internet - `sbt test`
 
 ---
 

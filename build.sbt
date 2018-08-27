@@ -4,7 +4,7 @@ version := "0.1"
 
 scalaVersion := "2.12.6"
 
-val specs2Version = "4.3.2"
+val specs2Version = "4.3.4"
 val monixVersion = "3.0.0-RC1"
 
 libraryDependencies ++= Seq(

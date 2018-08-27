@@ -38,7 +38,7 @@ object TaskAdventures {
   }
 
   /**
-    * 4.	There is 1 remote service which will return you a task that provides the current temperature in celcius.
+    * 4.	There is 1 remote service which will return you a task that provides the current temperature in celsius.
     *
     */
   def getCurrentTempInF(currentTemp: () => Task[Int]): Task[Int] = {
@@ -48,12 +48,12 @@ object TaskAdventures {
   }
 
   /**
-    * 5.	There is 1 remote service which will return you a task that provides the current temperature in celcius.
+    * 5.	There is 1 remote service which will return you a task that provides the current temperature in celsius.
     * The conversion is complex so we have decided to refactor it out to another remote microservice.
-    * Make use of both of these services to return the current temperature in farenheit.
+    * Make use of both of these services to return the current temperature in fahrenheit.
     */
-  def getCurrentTempInFAgain(currentTemp: () => Task[Int], convertor: Int => Task[Int]): Task[Int] = {
-    currentTemp().flatMap(convertor)
+  def getCurrentTempInFAgain(currentTemp: () => Task[Int], converter: Int => Task[Int]): Task[Int] = {
+    currentTemp().flatMap(converter)
   }
 
   /**
@@ -72,8 +72,8 @@ object TaskAdventures {
 
   /**
     * 6.b. As above, but try to implement the parallel processing using the monix Applicative instance for Task
-    * and the cats `sequence` function. (if you haven't heard of cats / sequence skip this).
-    *
+    * and the cats `sequence` function. (if you haven't heard of cats / sequence skip this - even if you have consider
+    * this as optional).
     *
     * The following imports will help.
     * import cats.implicits._
