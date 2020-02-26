@@ -6,7 +6,7 @@ There is a solution branch with  ... guess what...
 
 The exercises below are designed to be followed in order.
 
-Please note these exercises are using Monix 3.0.0-RC1.  Please refer to the docs at
+Please note these exercises are using Monix 3.1.0.  Please refer to the docs at
 https://monix.io/docs/3x/eval/task.html
 
 ## Adventure 1: Aysnchrony with Monix Task

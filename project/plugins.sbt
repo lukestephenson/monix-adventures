@@ -1,1 +1,1 @@
-addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.3.3")
+addSbtPlugin("org.jmotor.sbt" % "sbt-dependency-updates" % "1.2.1")
