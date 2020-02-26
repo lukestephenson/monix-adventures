@@ -66,7 +66,7 @@ object ObservableAdventures {
     * of loaded items.
     */
   def load(targetRecords: Observable[TargetRecord], elasticSearchLoad: Seq[TargetRecord] => Task[Unit]): Observable[Int] = {
-    targetRecords.bufferTumbling(5).mapTask { batch =>
+    targetRecords.bufferTumbling(5).mapEval { batch =>
       elasticSearchLoad(batch).map(_ => batch.length)
     }
   }
