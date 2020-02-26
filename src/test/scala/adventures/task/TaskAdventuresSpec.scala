@@ -66,7 +66,7 @@ class TaskAdventuresSpec extends Specification {
 
       val scheduler = Scheduler.fixedPool(name = "test1", poolSize = 10)
 
-      val result = task.runAsync(scheduler)
+      val result = task.runToFuture(scheduler)
 
       // if not run in parallel this will timeout.
       Await.result(result, 2.seconds) must beEqualTo(6)
@@ -81,7 +81,7 @@ class TaskAdventuresSpec extends Specification {
 
       val scheduler = Scheduler.fixedPool(name = "test2", poolSize = 10)
 
-      val result = task.runAsync(scheduler)
+      val result = task.runToFuture(scheduler)
 
       // if not run in parallel this will timeout.
       Await.result(result, 2.seconds) must beEqualTo(6)
@@ -95,7 +95,7 @@ class TaskAdventuresSpec extends Specification {
       }
 
       "not retry before delay" in new RetryScope(1) {
-        task.runAsync(scheduler)
+        task.runToFuture(scheduler)
 
         calls must beEqualTo(1)
       }
@@ -109,7 +109,7 @@ class TaskAdventuresSpec extends Specification {
       }
 
       "return success result of 10th retry" in new RetryScope(10) {
-        task.runAsync(scheduler)
+        task.runToFuture(scheduler)
 
         scheduler.tick(10.seconds)
 
@@ -117,7 +117,7 @@ class TaskAdventuresSpec extends Specification {
       }
 
       "return failure result of 10th retry" in new RetryScope(11) {
-        val futureResult = task.runAsync(scheduler)
+        val futureResult = task.runToFuture(scheduler)
 
         scheduler.tick(10.seconds)
 
@@ -127,7 +127,7 @@ class TaskAdventuresSpec extends Specification {
       }
 
       "give up after 10 retries" in new RetryScope(100) {
-        task.runAsync(scheduler)
+        task.runToFuture(scheduler)
 
         scheduler.tick(1.minute)
 
@@ -160,6 +160,6 @@ class TaskAdventuresSpec extends Specification {
   private def result[T](task: Task[T]): T = {
     import monix.execution.Scheduler.Implicits.global
 
-    Await.result(task.runAsync, 2.seconds)
+    Await.result(task.runToFuture, 2.seconds)
   }
 }

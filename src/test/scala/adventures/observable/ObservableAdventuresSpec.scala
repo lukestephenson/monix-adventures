@@ -70,7 +70,7 @@ class ObservableAdventuresSpec extends Specification {
     "Consume an observable" in {
       val task = ObservableAdventures.execute(Observable(5, 5, 2))
 
-      Await.result(task.runAsync, 10.seconds) must beEqualTo(12)
+      Await.result(task.runToFuture, 10.seconds) must beEqualTo(12)
     }
 
     "handing a paginated feed" should {
@@ -130,7 +130,7 @@ class ObservableAdventuresSpec extends Specification {
 
         var dataEmitted: SourceRecord = null
 
-        obs.consumeWith(Consumer.foreach(emitted => dataEmitted = emitted)).runAsync
+        obs.consumeWith(Consumer.foreach(emitted => dataEmitted = emitted)).runToFuture
 
         Thread.sleep(1500)
 
@@ -158,7 +158,7 @@ class ObservableAdventuresSpec extends Specification {
       val job = ObservableAdventures.readTransformAndLoadAndExecute(readPage, esLoad)
 
       val start = System.currentTimeMillis()
-      val recordsProcessed = Await.result(job.runAsync, 1.minute)
+      val recordsProcessed = Await.result(job.runToFuture, 1.minute)
       val duration = System.currentTimeMillis() - start
 
       println(s"Processing took ${duration}ms")
@@ -170,7 +170,7 @@ class ObservableAdventuresSpec extends Specification {
   }
 
   def runLog[T](observable: Observable[T], timeout: FiniteDuration = 10.seconds): List[T] =
-    Await.result(observable.consumeWith(collectingConsumer).runAsync, timeout).reverse
+    Await.result(observable.consumeWith(collectingConsumer).runToFuture, timeout).reverse
 
   /**
     * Consumer which records all elements in a Vector.  Only for test purposes
